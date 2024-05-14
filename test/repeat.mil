@@ -1,0 +1,7 @@
+begin
+    i := READ;
+    repeat
+      write (i);
+      i := i + 1
+    until i < 10
+end

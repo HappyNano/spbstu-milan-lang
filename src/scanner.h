@@ -29,7 +29,10 @@ enum Token {
 	T_CMP,			// Сводная лексема для операторов отношения
 	T_LPAREN,		// Открывающая скобка
 	T_RPAREN,		// Закрывающая скобка
-	T_SEMICOLON		// ";"
+	T_SEMICOLON,		// ";"
+	// Task
+	T_REPEAT,		  // Ключевое слово "repeat"
+	T_UNTIL,		  // Ключевое слово "until"
 };
 
 // Функция tokenToString возвращает описание лексемы.
@@ -76,6 +79,10 @@ public:
 		keywords_["od"] = T_OD;
 		keywords_["write"] = T_WRITE;
 		keywords_["read"] = T_READ;
+
+		// Task
+		keywords_["repeat"] = T_REPEAT;
+		keywords_["until"] = T_UNTIL;
 
 		nextChar();
 	}
