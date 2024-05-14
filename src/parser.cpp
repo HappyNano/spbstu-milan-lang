@@ -78,6 +78,61 @@ void Parser::statement()
 		mustBe(T_FI);
 	}
 
+	else if(match(T_FOR)) {
+		mustBe(T_LPAREN);
+
+		int statementBeforeAddress, statementAfterAddress;
+		if (see(T_IDENTIFIER))
+		{
+			statementBeforeAddress = findOrAddVariable(scanner_->getStringValue());
+			next();
+			mustBe(T_ASSIGN);
+			expression();
+			codegen_->emit(STORE, statementBeforeAddress);
+		}
+		else
+		{
+			std::ostringstream msg;
+			msg << tokenToString(scanner_->token()) << " found while " << tokenToString(T_IDENTIFIER) << " expected.";
+			reportError(msg.str());
+		}
+		mustBe(T_SEMICOLON);
+		
+		int relationAddress = codegen_->getCurrentAddress();
+		relation();
+		//резервируем место под инструкцию условного перехода для выхода из цикла.
+		int jumpNoAddress = codegen_->reserve();
+		mustBe(T_SEMICOLON);
+
+		if (see(T_IDENTIFIER))
+		{
+			statementAfterAddress = findOrAddVariable(scanner_->getStringValue());
+			next();
+			mustBe(T_ASSIGN);
+			expression();
+		}
+		else
+		{
+			std::ostringstream msg;
+			msg << tokenToString(scanner_->token()) << " found while " << tokenToString(T_IDENTIFIER) << " expected.";
+			reportError(msg.str());
+		}
+		
+		mustBe(T_RPAREN);
+
+		mustBe(T_DO);
+		statementList();
+		mustBe(T_OD);
+
+		//операции step
+		codegen_->emit(STORE, statementAfterAddress);
+
+		//переходим по адресу проверки условия
+		codegen_->emit(JUMP, relationAddress);
+		//заполняем зарезервированный адрес инструкцией условного перехода на следующий за циклом оператор.
+		codegen_->emitAt(jumpNoAddress, JUMP_NO, codegen_->getCurrentAddress());
+	}
+
 	else if(match(T_WHILE)) {
 		//запоминаем адрес начала проверки условия.
 		int conditionAddress = codegen_->getCurrentAddress();

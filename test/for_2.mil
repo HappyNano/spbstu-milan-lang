@@ -1,0 +1,6 @@
+begin
+    x := READ;
+    for (i := x + 4; i < 5; i := i + 1) do
+      write (i)
+    od
+end
