@@ -78,6 +78,49 @@ void Parser::statement()
 		mustBe(T_FI);
 	}
 
+	else if(match(T_FOR)) {
+		int beginAddress, varAddress;
+		if (see(T_IDENTIFIER))
+		{
+			varAddress = findOrAddVariable(scanner_->getStringValue());
+			next();
+			mustBe(T_ASSIGN);
+			expression();
+			codegen_->emit(STORE, varAddress);
+
+			beginAddress = codegen_->getCurrentAddress();
+			codegen_->emit(LOAD, varAddress);
+		}
+		else
+		{
+			std::ostringstream msg;
+			msg << tokenToString(scanner_->token()) << " found while " << tokenToString(T_IDENTIFIER) << " expected.";
+			reportError(msg.str());
+		}
+
+		mustBe(T_TO);
+		expression();
+		codegen_->emit(COMPARE, 2); // <
+		//резервируем место под инструкцию условного перехода для выхода из цикла.
+		int jumpNoAddress = codegen_->reserve();
+		mustBe(T_STEP);
+		expression();
+
+		mustBe(T_DO);
+		statementList();
+		mustBe(T_OD);
+
+		//операции step
+		codegen_->emit(LOAD, varAddress);
+		codegen_->emit(ADD);
+		codegen_->emit(STORE, varAddress);
+
+		//переходим по адресу проверки условия
+		codegen_->emit(JUMP, beginAddress);
+		//заполняем зарезервированный адрес инструкцией условного перехода на следующий за циклом оператор.
+		codegen_->emitAt(jumpNoAddress, JUMP_NO, codegen_->getCurrentAddress());
+	}
+
 	else if(match(T_WHILE)) {
 		//запоминаем адрес начала проверки условия.
 		int conditionAddress = codegen_->getCurrentAddress();
