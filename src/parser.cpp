@@ -25,7 +25,7 @@ void Parser::statementList()
 	//	  В этом случае результатом разбора будет пустой блок (его список операторов равен null).
 	//	  Если очередная лексема не входит в этот список, то ее мы считаем началом оператора и вызываем метод statement. 
 	//    Признаком последнего оператора является отсутствие после оператора точки с запятой.
-	if(see(T_END) || see(T_OD) || see(T_ELSE) || see(T_FI)) {
+	if(see(T_END) || see(T_OD) || see(T_ELSE) || see(T_FI) || see(T_UNTIL) ) {
 		return;
 	}
 	else {
@@ -76,6 +76,10 @@ void Parser::statement()
 		}
 
 		mustBe(T_FI);
+	}
+
+	else if(match(T_FOR)) {
+		
 	}
 
 	else if(match(T_WHILE)) {
