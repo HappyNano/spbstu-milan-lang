@@ -30,6 +30,7 @@ static const char * tokenNames_[] = {
 	"';'",
 	// Task
 	"'FOR'",
+	"','",
 };
 
 void Scanner::nextToken()
@@ -126,6 +127,11 @@ void Scanner::nextToken()
 			//Признак лексемы ";" - встретили ";"
 			case ';':
 				token_ = T_SEMICOLON;
+				nextChar();
+				break;
+			//Признак лексемы "," - встретили ","
+			case ',':
+				token_ = T_COMMA;
 				nextChar();
 				break;
 			//Если встречаем ":", то дальше смотрим наличие символа "=". Если находим, то считаем что нашли лексему присваивания

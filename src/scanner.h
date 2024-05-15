@@ -32,6 +32,7 @@ enum Token {
 	T_SEMICOLON,		// ";"
 	// Task
 	T_FOR,		  // Ключевое слово "for"
+	T_COMMA,		// Запятая
 };
 
 // Функция tokenToString возвращает описание лексемы.

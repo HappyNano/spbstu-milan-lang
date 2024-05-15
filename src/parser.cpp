@@ -25,7 +25,7 @@ void Parser::statementList()
 	//	  В этом случае результатом разбора будет пустой блок (его список операторов равен null).
 	//	  Если очередная лексема не входит в этот список, то ее мы считаем началом оператора и вызываем метод statement. 
 	//    Признаком последнего оператора является отсутствие после оператора точки с запятой.
-	if(see(T_END) || see(T_OD) || see(T_ELSE) || see(T_FI) || see(T_UNTIL) ) {
+	if(see(T_END) || see(T_OD) || see(T_ELSE) || see(T_FI)) {
 		return;
 	}
 	else {
@@ -79,7 +79,70 @@ void Parser::statement()
 	}
 
 	else if(match(T_FOR)) {
-		
+		int varAddress;
+		if (see(T_IDENTIFIER))
+		{
+			varAddress = findOrAddVariable(scanner_->getStringValue());
+			next();
+			mustBe(T_ASSIGN);
+			expression();
+			codegen_->emit(STORE, varAddress);
+		}
+		else
+		{
+			std::ostringstream msg;
+			msg << tokenToString(scanner_->token()) << " found while " << tokenToString(T_IDENTIFIER) << " expected.";
+			reportError(msg.str());
+		}
+		codegen_->emit(PUSH, 0); // Index
+		int jumpDoAddress = codegen_->reserve();
+
+		int gettingNextValueAddress = codegen_->getCurrentAddress();
+		int jumpNoAddress = -1;
+		int count = 1;
+		std::vector<int> jumpYesAddresses;
+		while (see(T_COMMA))
+		{
+			if (jumpNoAddress != -1)
+			{
+				codegen_->emitAt(jumpNoAddress, JUMP_NO, codegen_->getCurrentAddress());
+			}
+			codegen_->emit(DUP);
+			codegen_->emit(PUSH, count++);
+			codegen_->emit(COMPARE, 0); // =
+			jumpNoAddress = codegen_->reserve();
+			next();
+			expression();
+			codegen_->emit(STORE, varAddress);
+			jumpYesAddresses.push_back(codegen_->reserve());
+		}
+		// Last jumpNoAddress is end address
+
+		if (count == 1)
+		{
+			reportError("Expected two or more values in for loop");
+			return;
+		}
+
+		codegen_->emitAt(jumpDoAddress, JUMP, codegen_->getCurrentAddress());
+		for (auto address: jumpYesAddresses)
+		{
+			codegen_->emitAt(address, JUMP, codegen_->getCurrentAddress());
+		}
+
+		// Code
+		mustBe(T_DO);
+		statementList();
+		mustBe(T_OD);
+
+		//увеличиваем индекс
+		codegen_->emit(PUSH, 1);
+		codegen_->emit(ADD);
+		//переходим по адресу проверки условия
+		codegen_->emit(JUMP, gettingNextValueAddress);
+		//заполняем зарезервированный адрес инструкцией условного перехода на следующий за циклом оператор.
+		codegen_->emitAt(jumpNoAddress, JUMP_NO, codegen_->getCurrentAddress());
+		codegen_->emit(POP); // Index clear
 	}
 
 	else if(match(T_WHILE)) {
