@@ -133,10 +133,9 @@ void Scanner::nextToken()
 				if(ch_ == '=') {
 					token_ = T_ASSIGN;
 					nextChar();
-				
 				}
 				else {
-					token_ = T_ILLEGAL;
+					token_ = T_COLON;
 				}
 				break;
 			//Если встретили символ "<", то либо следующий символ "=", тогда лексема нестрогого сравнения. Иначе - строгого.

@@ -25,7 +25,7 @@ void Parser::statementList()
 	//	  В этом случае результатом разбора будет пустой блок (его список операторов равен null).
 	//	  Если очередная лексема не входит в этот список, то ее мы считаем началом оператора и вызываем метод statement. 
 	//    Признаком последнего оператора является отсутствие после оператора точки с запятой.
-	if(see(T_END) || see(T_OD) || see(T_ELSE) || see(T_FI)) {
+	if(see(T_END) || see(T_OD) || see(T_ELSE) || see(T_FI) || see(T_BREAK) || see(T_ENDCASE) ) {
 		return;
 	}
 	else {
@@ -76,6 +76,42 @@ void Parser::statement()
 		}
 
 		mustBe(T_FI);
+	}
+
+	else if(match(T_SWITCH)) {
+		mustBe(T_LPAREN);
+		expression();
+		mustBe(T_RPAREN);
+
+		mustBe(T_BEGIN);
+		
+		std::vector<int> breakAddresses; // JUMPs to end
+		while (see(T_CASE))
+		{
+			next();
+			codegen_->emit(DUP);
+			expression();
+			codegen_->emit(COMPARE, 0); // =
+			int jumpNoAddress = codegen_->reserve();
+			mustBe(T_COLON);
+			statementList();
+			mustBe(T_BREAK);
+			mustBe(T_SEMICOLON);
+			breakAddresses.push_back(codegen_->reserve());
+			codegen_->emitAt(jumpNoAddress, JUMP_NO, codegen_->getCurrentAddress());
+		}
+
+		mustBe(T_DEFAULT);
+		mustBe(T_COLON);
+		statementList();
+		mustBe(T_ENDCASE);
+
+		for (auto address: breakAddresses)
+		{
+			codegen_->emitAt(address, JUMP, codegen_->getCurrentAddress());
+		}
+		
+		codegen_->emit(POP); // Clear switch expression in stack
 	}
 
 	else if(match(T_WHILE)) {

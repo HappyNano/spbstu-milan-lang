@@ -29,7 +29,14 @@ enum Token {
 	T_CMP,			// Сводная лексема для операторов отношения
 	T_LPAREN,		// Открывающая скобка
 	T_RPAREN,		// Закрывающая скобка
-	T_SEMICOLON		// ";"
+	T_SEMICOLON,		// ";"
+	// Task
+	T_SWITCH,		  // Ключевое слово "switch"
+	T_ENDCASE,		// Ключевое слово "endcase"
+	T_CASE,		// Ключевое слово "case"
+	T_BREAK,		// Ключевое слово "break"
+	T_DEFAULT,		// Ключевое слово "default"
+	T_COLON,	// Двоеточие ":"
 };
 
 // Функция tokenToString возвращает описание лексемы.
@@ -76,6 +83,13 @@ public:
 		keywords_["od"] = T_OD;
 		keywords_["write"] = T_WRITE;
 		keywords_["read"] = T_READ;
+
+		// Task
+		keywords_["switch"] = T_SWITCH;
+		keywords_["endcase"] = T_ENDCASE;
+		keywords_["case"] = T_CASE;
+		keywords_["break"] = T_BREAK;
+		keywords_["default"] = T_DEFAULT;
 
 		nextChar();
 	}
