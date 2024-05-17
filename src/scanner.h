@@ -32,8 +32,6 @@ enum Token {
 	T_SEMICOLON,		// ";"
 	// Task
 	T_FOR,		  // Ключевое слово "for"
-	T_TO,				// Ключевое слово "to"
-	T_STEP,			// Ключевое слово "step"
 };
 
 // Функция tokenToString возвращает описание лексемы.
